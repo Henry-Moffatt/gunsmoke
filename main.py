@@ -85,8 +85,8 @@ window = pygame.display.set_mode((400,550))
 window.fill((255,255,255))
 running = True
 while running:
-
-    pygame.draw.rect(window, (0, 0, 255), [100, 100, 20, 20], 0)
+    player = pygame.draw.rect(window, (0, 0, 255), [100, 100, 20, 20], 0)
+    player = player.move((100, 100))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
