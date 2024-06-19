@@ -3,6 +3,8 @@ import random
 from pygame.locals import *
 import time
 
+drawnRect = 0
+
 class Destructible:
     def __init__(self,health,dropChances,dropItems):
         self.h= health
@@ -20,33 +22,43 @@ class Box(Destructible):
         super().__init__(health, dropChances, dropItems)
 
 class Character(Destructible):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon,pos):
         super().__init__(health, dropChances, dropItems)
+        self.pos=pos
         self.s = speed
         self.d = dmg
         self.f= fireRate
         self.w = weapon
-        self.rect = pygame.rect.Rect(200, 225, 20, 20)
-        self.drawnRect =pygame.draw.rect(window, (0,255,0), self.rect)
+        self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
+        drawnRect =  self.drawnRect =pygame.draw.rect(window, (0,255,0), self.rect)
+        
 
     def shoot(self, angle):
         pass
 
     def move(self, x, y):
-        self.rect.move_ip(x,y)
-        self.drawnRect
-        self.drawnRect=pygame.draw.rect(window, (0,255,0), self.rect)
+        if x <0:
+            self.pos.x -= self.s
+        elif x > 0:
+            self.pos.x += self.s
+        if y < 0:
+            self.pos.y -= self.s
+        elif y > 0:
+            self.pos.y += self.s
+
+    def draw(self,window):
+        self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
+        window.fill((0,0,0))
+        drawnRect = pygame.draw.rect(window, (0,255,0), self.rect)
+
         
 
 
 class Player(Character):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, score, controls):
-        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon)
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, score, controls):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos)
         self.sc=score
         self.cont =controls
-    
-    def instantiatePlayer(self):
-        pass
 
     def increaseScore(self, amount):
         self.sc += amount
@@ -59,9 +71,25 @@ class Player(Character):
     
     def increaseFireRate(self, amount):
         self.f += amount
+    
+    def move(self):
+        keys =pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            if self.pos.y > 5:
+                self.pos.y -=self.s
+        if keys[pygame.K_DOWN]:
+            if self.pos.y < window.get_height()-20:
+                self.pos.y += self.s
+        if keys[pygame.K_LEFT]:
+            if self.pos.x > 5:
+                self.pos.x -=self.s
+        if keys[pygame.K_RIGHT]:
+            if self.pos.x < window.get_width()-20:
+                self.pos.x +=self.s
+        
 
 class Enemy(Character):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
+    def __innit__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
         super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon)
         
 
@@ -95,12 +123,16 @@ pygame.init()
 window = pygame.display.set_mode((400,550))
 window.fill((0,0,0))
 running = True
-
-player = Player(0,0,10,10, 10, "none", 0,0, controls=["w","a"])
+clock = pygame.time.Clock()
+position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
+player = Player(3,0,0,10,10,10,"none",position,10,0)
 while running:
-    time.sleep(0.01)
-    player.move(1,1)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    pygame.display.update()
+        player.draw(window)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        player.move()
+        pygame.display.update()
+        pygame.display.flip()
+        clock.tick(60)
