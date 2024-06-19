@@ -1,6 +1,7 @@
 import pygame
 import random
 from pygame.locals import *
+import time
 
 class Destructible:
     def __init__(self,health,dropChances,dropItems):
@@ -25,12 +26,18 @@ class Character(Destructible):
         self.d = dmg
         self.f= fireRate
         self.w = weapon
+        self.rect = pygame.rect.Rect(200, 225, 20, 20)
+        self.drawnRect =pygame.draw.rect(window, (0,255,0), self.rect)
 
     def shoot(self, angle):
         pass
 
-    def move(self, direction):
-        pass
+    def move(self, x, y):
+        self.rect.move_ip(x,y)
+        self.drawnRect
+        self.drawnRect=pygame.draw.rect(window, (0,255,0), self.rect)
+        
+
 
 class Player(Character):
     def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, score, controls):
@@ -38,6 +45,9 @@ class Player(Character):
         self.sc=score
         self.cont =controls
     
+    def instantiatePlayer(self):
+        pass
+
     def increaseScore(self, amount):
         self.sc += amount
 
@@ -53,6 +63,7 @@ class Player(Character):
 class Enemy(Character):
     def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
         super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon)
+        
 
     def trackPlayer():
         pass
@@ -82,11 +93,13 @@ class Environment():
 
 pygame.init()
 window = pygame.display.set_mode((400,550))
-window.fill((255,255,255))
+window.fill((0,0,0))
 running = True
+
+player = Player(0,0,10,10, 10, "none", 0,0, controls=["w","a"])
 while running:
-    player = pygame.draw.rect(window, (0, 0, 255), [100, 100, 20, 20], 0)
-    player = player.move((100, 100))
+    time.sleep(0.01)
+    player.move(1,1)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
