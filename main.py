@@ -7,10 +7,11 @@ import math
 drawnRect = 0
 
 class Destructible:
-    def __init__(self,health,dropChances,dropItems):
+    def __init__(self,health,dropChances,dropItems, scrollSpeed):
         self.h= health
         self.dC=dropChances
         self.dI=dropItems
+        self.scr=scrollSpeed
     
     def takeDamage(self, amount):
         self.h -= amount
@@ -23,35 +24,32 @@ class Box(Destructible):
         super().__init__(health, dropChances, dropItems)
 
 class Character(Destructible):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon,pos):
-        super().__init__(health, dropChances, dropItems)
-        self.pos=pos
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon,pos, scrollSpeed):
+        super().__init__(health, dropChances, dropItems, scrollSpeed)
+        self.pos=pygame.Vector2(pos.x, pos.y)
         self.s = speed
         self.d = dmg
         self.f= fireRate
         self.w = weapon
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
-        drawnRect =  self.drawnRect =pygame.draw.rect(window, (0,255,0), self.rect)
-        
-
-    def shoot(self, angle):
-        pass
+        self.drawnRect =  self.drawnRect =pygame.draw.rect(window, (0,255,0), self.rect)
 
     def move(self, x, y):
         pass
 
     def draw(self,window):
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
-        drawnRect = pygame.draw.rect(window, (0,255,0), self.rect)
+        self.drawnRect = pygame.draw.rect(window, (0,255,0), self.rect)
 
         
 
 
 class Player(Character):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, score, controls):
-        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos)
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, score, controls, scrollSpeed):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, scrollSpeed)
         self.sc=score
         self.cont =controls
+        self.bullets = []
 
     def increaseScore(self, amount):
         self.sc += amount
@@ -88,7 +86,20 @@ class Player(Character):
                 if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
                     speed = self.s * math.sqrt(2)/2
                 self.pos.x +=speed
-        
+        if self.pos.y < window.get_height()-20:
+            self.pos.y +=self.scr
+        if keys [pygame.K_z] and keys [pygame.K_x]==False and keys[pygame.K_c] == False:
+            self.bullets.append(Projectile(1, -30, 5, pygame.Vector2(self.pos.x +5, self.pos.y)))
+            self.bullets.append(Projectile(1, -30, 5, pygame.Vector2(self.pos.x +15, self.pos.y)))
+        if keys [pygame.K_x] and keys [pygame.K_c]==False and keys[pygame.K_z] == False:
+            self.bullets.append(Projectile(1, 0, 5, pygame.Vector2(self.pos.x +5, self.pos.y)))
+            self.bullets.append(Projectile(1, 0, 5, pygame.Vector2(self.pos.x +15, self.pos.y)))
+        if keys [pygame.K_c] and keys [pygame.K_x]==False and keys[pygame.K_z] == False:
+            self.bullets.append(Projectile(1, 30, 5, pygame.Vector2(self.pos.x +5, self.pos.y)))
+            self.bullets.append(Projectile(1, 30, 5, pygame.Vector2(self.pos.x +15, self.pos.y)))
+        for i in range(len(self.bullets)):
+            self.bullets[i].move(self.scr)
+            self.bullets[i].draw(window)
 
 class Enemy(Character):
     def __innit__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
@@ -105,22 +116,27 @@ class BuildingEnemy(Enemy):
         super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon)
 
 class Projectile():
-    def __init__(self, dmg, angle, speed,pos):
+    def __init__(self, dmg, angle, speed, pos):
         self.d = dmg
         self.a = angle
         self.s = speed
+        self.pos=pygame.Vector2(pos.x, pos.y)
+        self.rect =  pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
 
-    def move():
+    def move(self, scrollSpeed):
+        if self.pos.y !=1:
+            self.pos.x += self.s * math.sin(math.radians(self.a))
+            self.pos.y -= self.s * math.cos(math.radians(self.a))
+    
+    def draw(self, window):
         
-        math.sin(math.radians(330))
+        self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
+        self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
 
 class Environment():
     def __init__(self, scrollSpeed):
         self.scr = scrollSpeed
-
-    def scroll(self):
-        pass
-
+    
     def instantiateBox():
         pass
 
@@ -133,7 +149,9 @@ window.fill((0,0,0))
 running = True
 clock = pygame.time.Clock()
 position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
-player = Player(3,0,0,5,10,10,"none",position,10,0)
+pos2=position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
+scrollSpeed = 2
+player = Player(3,0,0,5,10,10,"none",position,10,0, scrollSpeed)
 while running:
         
         window.fill((0,0,0))
