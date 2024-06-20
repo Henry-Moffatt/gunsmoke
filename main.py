@@ -110,7 +110,7 @@ class Player(Character):
             for n in range(len(world.enemies[i].bullets)):
                 if self.rect.colliderect(world.enemies[i].bullets[n]):
                     self.takeDamage(1)
-                    world.enemies[i].bullets.pop(n)
+                    world.enemies[i].bullets.pop()
         if self.h <= 0:
             pygame.quit()
 
@@ -130,7 +130,7 @@ class Enemy(Character):
         
     def move(self, playerLocation):
         
-        if uptime % 100 == 0:
+        if uptime % 50 == 0:
             self.randoffsetx = random.randint(-200,200)
             self.randoffsety = random.randint(100, 300)
         if self.h > 0:
@@ -140,20 +140,19 @@ class Enemy(Character):
             if playerLocation.x -self.randoffsetx < self.pos.x:
                 if self.pos.x >20:
                     self.pos.x -= self.s
-            if playerLocation.y-100-self.randoffsety > self.pos.y:
-                if self.pos.y < window.get_height()+100:
+            if playerLocation.y-50 - self.randoffsety > self.pos.y:
+                if self.pos.y  < window.get_height():
                     self.pos.y += self.s
-            if playerLocation.y-100-self.randoffsety < self.pos.y:
-                if self.pos.y > 20:
+            if playerLocation.y -50 - self.randoffsety < self.pos.y:
+                if self.pos.y > 0:
                     self.pos.y -= self.s
             if self.pos.y < window.get_height():
                 self.pos.y += scrollSpeed
     
     def shoot(self, playerLocation):
         if uptime % 200==0:
-            
-            angle = math.degrees(math.atan((playerLocation.y-self.pos.y)/(playerLocation.x-self.pos.x)))
-            print(angle)
+            polar = pygame.Vector2((self.pos.x-playerLocation.x),(self.pos.y-playerLocation.y)).as_polar()
+            angle = polar[1]
             self.bullets.append(Projectile(1, angle, 5, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
         for i in range(len(self.bullets)):
             self.bullets[-i].moveForEnemy(window)
@@ -179,7 +178,7 @@ class Projectile():
         self.ut = 0
 
     def move(self, window):
-        if self.drawCheck():
+        if self.drawCheck(30):
             self.pos.x += self.s * math.sin(math.radians(self.a))
             self.pos.y -= self.s * math.cos(math.radians(self.a))
             self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
@@ -189,17 +188,15 @@ class Projectile():
             player.removeProjectile(self)
     
     def moveForEnemy(self,window):
-        if self.a < 0:
+        if self.drawCheck( 100):
             self.pos.x -= self.s * math.cos(math.radians(self.a))
-        else:
-            self.pos.x += self.s * math.cos(math.radians(self.a))
-        self.pos.y -= self.s * -abs(math.sin(math.radians(self.a)))
-        self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
-        self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
-        self.ut +=1
+            self.pos.y -= self.s * math.sin(math.radians(self.a))
+            self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
+            self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
+            self.ut +=1
     
-    def drawCheck(self,):
-        if self.pos.y > 0 and self.ut <=25:
+    def drawCheck(self,utLim):
+        if self.pos.y > 0 and self.ut <=utLim:
             return True
         else:
             return False
@@ -222,7 +219,7 @@ class Environment():
     def spawnEnemy(self, uptime):
         if uptime % random.randint(1, 1000)==0:
             if len(self.enemies) <uptime/1000:
-                self.enemies.append(Enemy(1,0,0,2,1,0,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
+                self.enemies.append(Enemy(1,0,0,3,1,0,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
 
     def healthCheck(self, index):
         if self.enemies[index].h >0:
@@ -255,8 +252,8 @@ window.fill((0,0,0))
 running = True
 clock = pygame.time.Clock()
 position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
-pos2=position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
-scrollSpeed = 2
+pos2 = pygame.Vector2(window.get_width()/2, window.get_height()/2)
+scrollSpeed = 1
 player = Player(3,0,0,5,10,10,"none",position,0,0, scrollSpeed,(0,255,0))
 uptime =0
 world = Environment(scrollSpeed)
