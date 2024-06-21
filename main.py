@@ -2,12 +2,7 @@ import pygame
 import random
 from pygame.locals import *
 import math
-from destructible import Destructible
-from box import Box
-from character import Character
 from player import Player
-from enemy import Enemy
-from projectile import Projectile
 from environment import Environment
 
 pygame.init()
@@ -21,10 +16,11 @@ position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
 pos2 = pygame.Vector2(window.get_width()/2, window.get_height()/2)
 
 scrollSpeed = 1
+player = 0
 
-player = Player(3,0,0,5,10,2,"none",position,0,0, scrollSpeed,(0,255,0))
-
-world = Environment(scrollSpeed)
+world = Environment(scrollSpeed, player, window, 0, uptime)
+player = Player(3,0,0,5,10,2,position,0,0, scrollSpeed,(0,255,0), window, world, uptime)
+world = Environment(scrollSpeed, player, window, 0, uptime)
 
 font = pygame.font.SysFont("Papyrus", 21)
 
@@ -34,7 +30,7 @@ while running:
         dt =clock.tick(60)
         uptime +=1
         window.fill((0,0,0))
-        player.draw(window)
+        player.draw()
         world.spawnEnemy(uptime)
         world.manager(player.pos)
         for event in pygame.event.get():

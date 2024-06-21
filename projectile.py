@@ -1,10 +1,12 @@
-from main import *
+import pygame
+import math
 
 class Projectile():
-    def __init__(self, dmg, angle, speed, pos):
+    def __init__(self, dmg, angle, speed, pos, player):
         self.d = dmg
         self.a = angle
         self.s = speed
+        self.player = player
         self.pos=pygame.Vector2(pos.x, pos.y)
         self.rect =  pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
         self.ut = 0
@@ -18,7 +20,7 @@ class Projectile():
             self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
             self.ut +=1
         else:
-            player.removeProjectile(self)
+            self.player.removeProjectile(self)
     
     def moveForEnemy(self,window):
         if self.drawCheck(300):
