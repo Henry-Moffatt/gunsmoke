@@ -17,11 +17,16 @@ class Destructible:
 
     def drop(self):
         dice = random.random()
-        if dice <=self.dC[4]:
+        if dice <=self.dC[3]:
             return 4
-        elif self.dC[4] < dice <= self.dC[3]:
+        elif self.dC[3] < dice <= self.dC[2]:
             return 3
-        #4 drop items: large score (1000) common, speed uncommon, firerate rare, health rarest
+        elif self.dC[2] < dice <= self.dC[1]:
+            return 2
+        elif self.dC[1] < dice <= self.dC[0]:
+            return 1
+        else:
+            return False
 
 class Box(Destructible):
     def __init__(self, health, dropChances, dropItems):
@@ -31,9 +36,9 @@ class Character(Destructible):
     def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon,pos, scrollSpeed,color):
         super().__init__(health, dropChances, dropItems, scrollSpeed)
         self.pos=pygame.Vector2(pos.x, pos.y)
-        self.s = speed
+        self.speed = speed
         self.d = dmg
-        self.f= fireRate
+        self.fire= fireRate
         self.w = weapon
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
         self.drawnRect =  self.drawnRect =pygame.draw.rect(window, color, self.rect)
@@ -61,33 +66,33 @@ class Player(Character):
         self.h += amount
     
     def increaseSpeed(self, amount):
-        self.s+=amount
+        self.speed+=amount
     
     def increaseFireRate(self, amount):
-        self.f += amount
+        self.fire += amount
     
     def move(self):
         keys =pygame.key.get_pressed()
-        speed = self.s
+        speed = self.speed
         if keys[pygame.K_UP]:
-            if self.pos.y > 30:
+            if self.pos.y > 5:
                 if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-                    speed = self.s * math.sqrt(2)/2
+                    speed = self.speed * math.sqrt(2)/2
                 self.pos.y -=speed
         if keys[pygame.K_DOWN]:
             if self.pos.y < window.get_height()-20:
                 if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-                    speed = self.s * math.sqrt(2)/2
+                    speed = self.speed * math.sqrt(2)/2
                 self.pos.y += speed
         if keys[pygame.K_LEFT]:
             if self.pos.x > 5:
                 if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-                    speed = self.s * math.sqrt(2)/2
+                    speed = self.speed * math.sqrt(2)/2
                 self.pos.x -=speed
         if keys[pygame.K_RIGHT]:
             if self.pos.x < window.get_width()-20:
                 if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-                    speed = self.s * math.sqrt(2)/2
+                    speed = self.speed * math.sqrt(2)/2
                 self.pos.x +=speed
         if self.pos.y < window.get_height()-20:
             self.pos.y +=self.scr
@@ -95,7 +100,7 @@ class Player(Character):
     def shoot(self, dt):
     
         keys = pygame.key.get_pressed()
-        if dt % 10 == 0:
+        if dt % 10/self.fire == 0:
             if keys[pygame.K_z] and keys[pygame.K_x]==False and keys[pygame.K_c] == False:
                 self.bullets.append(Projectile(self.d, -35, 5, pygame.Vector2(self.pos.x +4, self.pos.y)))
                 self.bullets.append(Projectile(self.d, -25, 5, pygame.Vector2(self.pos.x +14, self.pos.y)))
@@ -140,16 +145,16 @@ class Enemy(Character):
         if self.h > 0:
             if playerLocation.x-self.randoffsetx > self.pos.x:
                 if self.pos.x < window.get_width()-20:
-                    self.pos.x += self.s
+                    self.pos.x += self.speed
             if playerLocation.x -self.randoffsetx < self.pos.x:
                 if self.pos.x >20:
-                    self.pos.x -= self.s
+                    self.pos.x -= self.speed
             if playerLocation.y-self.randoffsety > self.pos.y:
                 if self.pos.y < window.get_height()+100:
-                    self.pos.y += self.s
+                    self.pos.y += self.speed
             if playerLocation.y-self.randoffsety < self.pos.y:
                 if self.pos.y > 20:
-                    self.pos.y -= self.s
+                    self.pos.y -= self.speed
     
     def shoot(self, playerLocation):
         if uptime % 200==0:
@@ -174,27 +179,28 @@ class Projectile():
     def __init__(self, dmg, angle, speed, pos):
         self.d = dmg
         self.a = angle
-        self.s = speed
+        self.speed= speed
         self.pos=pygame.Vector2(pos.x, pos.y)
         self.rect =  pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
         self.ut = 0
 
     def move(self, window):
         if self.drawCheck():
-            self.pos.x += self.s * math.sin(math.radians(self.a))
-            self.pos.y -= self.s * math.cos(math.radians(self.a))
+            self.pos.x += self.speed* math.sin(math.radians(self.a))
+            self.pos.y -= self.speed* math.cos(math.radians(self.a))
             self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
             self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
             self.ut +=1
         else:
+
             player.removeProjectile(self)
     
     def moveForEnemy(self,window):
         if self.a < 0:
-            self.pos.x -= self.s * math.cos(math.radians(self.a))
+            self.pos.x -= self.speed* math.cos(math.radians(self.a))
         else:
-            self.pos.x += self.s * math.cos(math.radians(self.a))
-        self.pos.y -= self.s * -abs(math.sin(math.radians(self.a)))
+            self.pos.x += self.speed* math.cos(math.radians(self.a))
+        self.pos.y -= self.speed* -abs(math.sin(math.radians(self.a)))
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,2,2)
         self.drawnRect = pygame.draw.rect(window, (255,255,255), self.rect)
         self.ut +=1
@@ -213,6 +219,7 @@ class Environment():
         self.boxes = []
         self.enemies = []
         self.buildings= []
+        self.powerups =[]
     
     def instantiateBox():
         pass
@@ -242,13 +249,46 @@ class Environment():
                 self.enemies[-i].draw(window)
                 self.enemies[-i].shoot(playerLocation)
             else:
+                x=self.enemies[-i].drop()
+                if x != False:
+                    self.powerups.append(powerUp(x, self.enemies[-i].pos))
                 self.removeEnemy(-i)
                 player.increaseScore(100)
+        for i in range(0, len(self.powerups)):
+            self.powerups[i].drawAndCheck()
 
     def removeEnemy(self, enemyToRemove):
         self.enemies.pop(enemyToRemove)
 
-                
+class powerUp():
+    def __init__(self, type, pos) -> None:
+        self.t=type
+        self.pos = pygame.Vector2(pos.x, pos.y)
+        self.rect = pygame.rect.Rect(self.pos.x,self.pos.y,10,10)
+        self.collected = False
+
+    def drawAndCheck(self):
+        if self.collected == False:
+            self.drawnRect = pygame.draw.rect(window,(255,255,0),self.rect)
+        
+            if self.rect.colliderect(player): 
+                print("collision detected")
+                print(self.t)
+                if self.t == 4:
+                    player.increaseScore(1000)
+                    self.collected = True
+                elif self.t == 3:
+                    player.increaseSpeed(2)
+                    self.collected = True
+                elif self.t == 2:
+                    player.increaseFireRate(2)
+                    self.collected = True
+                elif self.t == 1:
+                    player.increaseHealth(1)
+                    self.collected = True
+        
+            
+        
 
 pygame.init()
 window = pygame.display.set_mode((400,550))
@@ -268,6 +308,8 @@ font = pygame.font.SysFont("Papyrus", 21)
 while running:
         text = font.render(f"Health: {player.h}", False, (200, 200, 200))
         text2 = font.render(f"Score: {player.sc}", False, (200, 200, 200))
+        text3 = font.render(f"Speed: {player.speed}", False, (200, 200, 200))
+        text4 = font.render(f"Firerate: {player.fire}", False, (200, 200, 200))
         dt =clock.tick(60)
         uptime +=1
         window.fill((0,0,0))
@@ -282,4 +324,6 @@ while running:
         player.checkDamage()
         window.blit(text, pygame.Vector2(75,0))
         window.blit(text2, pygame.Vector2(250,0))
+        window.blit(text3, position)
+        window.blit(text4,pygame.Vector2(25, 20))
         pygame.display.flip()
