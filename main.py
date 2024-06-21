@@ -16,7 +16,12 @@ class Destructible:
         self.h -= amount
 
     def drop(self):
-        pass
+        dice = random.random()
+        if dice <=self.dC[4]:
+            return 4
+        elif self.dC[4] < dice <= self.dC[3]:
+            return 3
+        #4 drop items: large score (1000) common, speed uncommon, firerate rare, health rarest
 
 class Box(Destructible):
     def __init__(self, health, dropChances, dropItems):
@@ -129,9 +134,9 @@ class Enemy(Character):
         
     def move(self, playerLocation):
         
-        if uptime % 100 == 0:
+        if uptime % 50 == 0:
             self.randoffsetx = random.randint(-200,200)
-            self.randoffsety = random.randint(100, 300)
+            self.randoffsety = random.randint(50, 150)
         if self.h > 0:
             if playerLocation.x-self.randoffsetx > self.pos.x:
                 if self.pos.x < window.get_width()-20:
@@ -139,20 +144,17 @@ class Enemy(Character):
             if playerLocation.x -self.randoffsetx < self.pos.x:
                 if self.pos.x >20:
                     self.pos.x -= self.s
-            if playerLocation.y-100-self.randoffsety > self.pos.y:
+            if playerLocation.y-self.randoffsety > self.pos.y:
                 if self.pos.y < window.get_height()+100:
                     self.pos.y += self.s
-            if playerLocation.y-100-self.randoffsety < self.pos.y:
+            if playerLocation.y-self.randoffsety < self.pos.y:
                 if self.pos.y > 20:
                     self.pos.y -= self.s
-            if self.pos.y < window.get_height():
-                self.pos.y += scrollSpeed
     
     def shoot(self, playerLocation):
         if uptime % 200==0:
             
             angle = math.degrees(math.atan((playerLocation.y-self.pos.y)/(playerLocation.x-self.pos.x)))
-            print(angle)
             self.bullets.append(Projectile(1, angle, 5, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
         for i in range(len(self.bullets)):
             self.bullets[-i].moveForEnemy(window)
@@ -221,7 +223,7 @@ class Environment():
     def spawnEnemy(self, uptime):
         if uptime % random.randint(1, 1000)==0:
             if len(self.enemies) <uptime/1000:
-                self.enemies.append(Enemy(1,0,0,2,1,0,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
+                self.enemies.append(Enemy(1,[0.4, 0.25, 0.15, 0.1],[4, 3, 2, 1],2,1,0,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
 
     def healthCheck(self, index):
         if self.enemies[index].h >0:
@@ -269,7 +271,7 @@ while running:
         dt =clock.tick(60)
         uptime +=1
         window.fill((0,0,0))
-        player.draw()
+        player.draw(window)
         world.spawnEnemy(uptime)
         world.manager(player.pos)
         for event in pygame.event.get():
