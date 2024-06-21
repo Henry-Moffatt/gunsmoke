@@ -17,29 +17,62 @@ class Destructible:
 
     def drop(self):
         dice = random.random()
-        if dice <=self.dC[3]:
+        if dice <=0.1:
             return 4
         elif self.dC[3] < dice <= self.dC[2]:
             return 3
-        elif self.dC[2] < dice <= self.dC[1]:
-            return 2
-        elif self.dC[1] < dice <= self.dC[0]:
-            return 1
         else:
             return False
 
 class Box(Destructible):
-    def __init__(self, health, dropChances, dropItems):
-        super().__init__(health, dropChances, dropItems)
+    def __init__(self, health, dropChances, dropItems,scrollSpeed, pos):
+        super().__init__(health, dropChances, dropItems, scrollSpeed)
+        self.position = pygame.Vector2(pos.x,pos.y)
+        self.rect=pygame.rect.Rect(self.position.x,self.position.y,25,25)
+        self.drawnRect =pygame.draw.rect(window, (0,0,255), self.rect)
+        self.live=True
+        self.dropped = False
+    
+    def move(self):
+        if self.live:
+            self.position.y += self.scr
+    
+    def drawIt(self):
+        if self.live:
+            self.rect=pygame.rect.Rect(self.position.x,self.position.y,25,25)        
+            self.drawnRect  =pygame.draw.rect(window, (0,0,255), self.rect)
+    
+    def checkDamage(self):
+        for n in range(0, len(player.bullets)):
+            if self.rect.colliderect(player.bullets[n]):
+                x= super().drop()
+                if x!= False:
+                    if self.dropped== False:
+                        world.powerups.append(powerUp(x,self.position))
+                        print("Created one power up")
+                        self.dropped = True
+                    
+                self.live = False
+            else:
+                if self.h > 0:
+                    self.h -= 1
+        if self.dropped:
+            dt = 0
+            if dt >100:
+                world.boxes.remove(self)
+            else:
+                dt +=1
+            
+        
+            
 
 class Character(Destructible):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon,pos, scrollSpeed,color):
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate,pos, scrollSpeed,color):
         super().__init__(health, dropChances, dropItems, scrollSpeed)
         self.pos=pygame.Vector2(pos.x, pos.y)
         self.speed = speed
         self.d = dmg
         self.fire= fireRate
-        self.w = weapon
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
         self.drawnRect =  self.drawnRect =pygame.draw.rect(window, color, self.rect)
         self.c =color
@@ -53,8 +86,8 @@ class Character(Destructible):
 
 
 class Player(Character):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, score, controls, scrollSpeed,color):
-        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, scrollSpeed,color)
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate,pos, score, controls, scrollSpeed,color):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, pos, scrollSpeed,color)
         self.sc=score
         self.cont =controls
         self.bullets = []
@@ -132,8 +165,8 @@ class Player(Character):
                     
 
 class Enemy(Character):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, scrollSpeed,color):
-        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon, pos, scrollSpeed,color)
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, pos, scrollSpeed,color):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate,pos, scrollSpeed,color)
         self.randoffsetx = random.randint(-300,300)
         self.randoffsety = random.randint(-300,300)
         self.bullets=[]
@@ -173,9 +206,14 @@ class Enemy(Character):
         if self.h ==0:
             world.removeEnemy(self)
 
+class Kamikaze(Enemy):
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, pos, scrollSpeed, color):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, pos, scrollSpeed, color)
+
+
 class BuildingEnemy(Enemy):
-    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, weapon):
-        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, weapon)
+    def __init__(self, health, dropChances, dropItems, speed, dmg, fireRate, ):
+        super().__init__(health, dropChances, dropItems, speed, dmg, fireRate, )
 
 class Projectile():
     def __init__(self, dmg, angle, speed, pos):
@@ -223,16 +261,26 @@ class Environment():
         self.buildings= []
         self.powerups =[]
     
-    def instantiateBox():
-        pass
-
+    def instantiateBox(self):
+        if uptime % random.randint(1, 7000)==0:
+            self.boxes.append(Box(random.randint(3,7),[0.4, 0.25, 0.15, 0.1],[4, 3, 2, 1],scrollSpeed,pygame.Vector2(random.randint(50,350),0)))
+        self.boxMgr()
+        
+    def boxMgr(self):
+        for i in range(0,len(self.boxes)):
+            self.boxes[i].move()
+            self.boxes[i].drawIt()
+            self.boxes[i].checkDamage()
+            
+                
+    
     def instantiateBuilding():
         pass
 
     def spawnEnemy(self, uptime):
         if uptime % random.randint(1, 1000)==0:
             if len(self.enemies) <uptime/1000:
-                self.enemies.append(Enemy(1,[0.4, 0.25, 0.15, 0.1],[4, 3, 2, 1],2,1,0,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
+                self.enemies.append(Enemy(1,[0.4, 0.25, 0.15, 0.1],[4, 3, 2, 1],2,1,0,pygame.Vector2(random.randint(10,390), 10),scrollSpeed,(255,0,0)))
 
     def healthCheck(self, index):
         if self.enemies[index].h >0:
@@ -258,7 +306,11 @@ class Environment():
                     self.removeEnemy(-i)
                     player.increaseScore(100)
         for i in range(0, len(self.powerups)):
-            self.powerups[i].drawAndCheck()
+            if 0 <= i < len(self.powerups):
+                self.powerups[-i].drawAndCheck()
+        
+    def removeBox(self, boxToRemove):
+        self.boxes.remove(boxToRemove)
 
     def removeEnemy(self, enemyToRemove):
         self.enemies.pop(enemyToRemove)
@@ -272,6 +324,8 @@ class powerUp():
 
     def drawAndCheck(self):
         if self.collected == False:
+            self.pos.y += scrollSpeed
+            self.rect =pygame.rect.Rect(self.pos.x,self.pos.y,10,10)
             self.drawnRect = pygame.draw.rect(window,(255,255,0),self.rect)
         
             if self.rect.colliderect(player): 
@@ -279,14 +333,10 @@ class powerUp():
                     player.increaseScore(1000)
                     self.collected = True
                 elif self.t == 3:
-                    player.increaseSpeed(2)
-                    self.collected = True
-                elif self.t == 2:
-                    player.increaseFireRate(2)
-                    self.collected = True
-                elif self.t == 1:
                     player.increaseHealth(1)
                     self.collected = True
+        else:
+            world.powerups.remove(self)
         
             
         
@@ -299,23 +349,23 @@ clock = pygame.time.Clock()
 uptime =0
 
 position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
-pos2=position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
 scrollSpeed = 2
-player = Player(3,0,0,5,10,10,"none",position,0,0, scrollSpeed,(0,255,0))
+player = Player(3,0,0,5,10,10,position,0,0, scrollSpeed,(0,255,0))
 uptime =0
 world = Environment(scrollSpeed)
 font = pygame.font.SysFont("Papyrus", 21)
-
+world.instantiateBox()
 while running:
         text = font.render(f"Health: {player.h}", False, (200, 200, 200))
         text2 = font.render(f"Score: {player.sc}", False, (200, 200, 200))
-        text3 = font.render(f"Speed: {player.speed}", False, (200, 200, 200))
-        text4 = font.render(f"Firerate: {player.fire}", False, (200, 200, 200))
         dt =clock.tick(60)
+        
         uptime +=1
         window.fill((0,0,0))
+        
         player.draw(window)
         world.spawnEnemy(uptime)
+        world.instantiateBox()
         world.manager(player.pos)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -323,8 +373,8 @@ while running:
         player.move()
         player.shoot(uptime)
         player.checkDamage()
+        
         window.blit(text, pygame.Vector2(75,0))
         window.blit(text2, pygame.Vector2(250,0))
-        window.blit(text3, position)
-        window.blit(text4,pygame.Vector2(25, 20))
+        
         pygame.display.flip()
