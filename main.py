@@ -112,7 +112,8 @@ class Player(Character):
                 self.bullets.append(Projectile(self.d, 35, 5, pygame.Vector2(self.pos.x +14, self.pos.y)))
 
         for i in range(len(self.bullets)):
-            self.bullets[-i].move(window)
+            if 0 <= i < len(self.bullets):
+                self.bullets[-i].move(window)
                 
     def checkDamage(self):
         for i in range(len(world.enemies)):
@@ -161,8 +162,9 @@ class Enemy(Character):
             
             angle = math.degrees(math.atan((playerLocation.y-self.pos.y)/(playerLocation.x-self.pos.x)))
             self.bullets.append(Projectile(1, angle, 5, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
-        for i in range(len(self.bullets)):
-            self.bullets[-i].moveForEnemy(window)
+        for i in range(0,len(self.bullets)):
+            if 0 <=i < len(self.bullets):
+                self.bullets[-i].moveForEnemy(window)
 
 
 
@@ -240,20 +242,21 @@ class Environment():
 
     def manager(self, playerLocation):
         for i in range(0,len(self.enemies)):
-            if self.healthCheck(-i):
-                for n in range(0, len(player.bullets)):
-                    if self.enemies[-i].rect.colliderect(player.bullets[n]):
-                        self.enemies[-i].takeDamage(player.bullets[n].d)
-                        break
-                self.enemies[-i].move(playerLocation)
-                self.enemies[-i].draw(window)
-                self.enemies[-i].shoot(playerLocation)
-            else:
-                x=self.enemies[-i].drop()
-                if x != False:
-                    self.powerups.append(powerUp(x, self.enemies[-i].pos))
-                self.removeEnemy(-i)
-                player.increaseScore(100)
+            if 0 <= i < len(self.enemies):
+                if self.healthCheck(-i):
+                    for n in range(0, len(player.bullets)):
+                        if self.enemies[-i].rect.colliderect(player.bullets[n]):
+                            self.enemies[-i].takeDamage(player.bullets[n].d)
+                            break
+                    self.enemies[-i].move(playerLocation)
+                    self.enemies[-i].draw(window)
+                    self.enemies[-i].shoot(playerLocation)
+                else:
+                    x=self.enemies[-i].drop()
+                    if x != False:
+                        self.powerups.append(powerUp(x, self.enemies[-i].pos))
+                    self.removeEnemy(-i)
+                    player.increaseScore(100)
         for i in range(0, len(self.powerups)):
             self.powerups[i].drawAndCheck()
 
@@ -272,8 +275,6 @@ class powerUp():
             self.drawnRect = pygame.draw.rect(window,(255,255,0),self.rect)
         
             if self.rect.colliderect(player): 
-                print("collision detected")
-                print(self.t)
                 if self.t == 4:
                     player.increaseScore(1000)
                     self.collected = True
