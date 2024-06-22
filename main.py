@@ -234,7 +234,7 @@ class Building():
     def draw(self):
         self.pos.y += scrollSpeed
         self.rect = pygame.rect.Rect(self.pos.x, self.pos.y, self.width, self.length)
-        self.drawnRect = pygame.draw.rect(window, (100,0,100),self.rect)
+        self.drawnRect = pygame.draw.rect(window, ((145,165,195)),self.rect)
         if self.enemy:
             if self.enemies.h >0:
                 for n in range(0, len(player.bullets)):
@@ -316,8 +316,10 @@ class Environment():
         
         if place <= 1:
             place = 0
+
         elif 1 < place <=3:
             place = window.get_width()-width
+
         else:
             both=True
             left =bool(random.randint(-10,1))
