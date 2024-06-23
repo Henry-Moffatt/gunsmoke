@@ -66,10 +66,7 @@ class Box(Destructible):
             if dt >1:
                 world.boxes.remove(self)
             else:
-                dt +=1
-            
-        
-            
+                dt +=1           
 
 class Character(Destructible):
     def __init__(self, health , speed, dmg, fireRate,pos, scrollSpeed,color):
@@ -155,20 +152,19 @@ class Player(Character):
                 
     def checkDamage(self):
         for i in range(len(world.enemies)):
-            for n in range(len(world.enemies[i].bullets)):
-                if self.rect.colliderect(world.enemies[i].bullets[n]):
-                    self.takeDamage(1)
-                    world.enemies[i].bullets.pop(n)
+            if 0 <=i < len(world.enemies):
+                for n in range(len(world.enemies[-i].bullets)):
+                    if 0 <=n < len(world.enemies[-i].bullets):
+                        if self.rect.colliderect(world.enemies[-i].bullets[-n]):
+                            self.takeDamage(world.enemies[-i].bullets[-n].d)
+                            print("damage dealt")
+                            world.enemies[-i].bullets.pop(-n)
         if self.h <= 0:
             pygame.quit()
 
-                
-    
     def removeProjectile(self, itemToRemove):
         self.bullets.remove(itemToRemove)
             
-                    
-
 class Enemy(Character):
     def __init__(self, health,speed, dmg, fireRate, pos, scrollSpeed,color):
         super().__init__(health, speed, dmg, fireRate,pos, scrollSpeed,color)
@@ -196,15 +192,13 @@ class Enemy(Character):
                     self.pos.y -= self.speed
     
     def shoot(self, playerLocation):
-        if uptime % 200==0:
+        if uptime % 150+ random.randint(-20,20)==0:
             if self.pos.y <= playerLocation.y:
                 angle = math.degrees(math.atan((playerLocation.y-self.pos.y)/(playerLocation.x-self.pos.x)))
                 self.bullets.append(Projectile(1, angle, 5, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
         for i in range(0,len(self.bullets)):
             if 0 <=i < len(self.bullets):
                 self.bullets[-i].moveForEnemy(window)
-
-
 
     def takeDamage(self, amount):
         super().takeDamage(amount)
@@ -214,6 +208,46 @@ class Enemy(Character):
 class Kamikaze(Enemy):
     def __init__(self, health, speed, dmg, fireRate, pos, scrollSpeed, color):
         super().__init__(health, speed, dmg, fireRate, pos, scrollSpeed, color)
+        self.countDown=20
+        self.shot = False
+        self.countDownStart= False
+    
+    def shoot(self, playerLocation):
+        if self.h > 0:
+            if abs(self.pos.y+10 -playerLocation.y) < 50 and abs(self.pos.x+10 -playerLocation.x) < 50:
+                self.countDownStart = True
+                if self.shot == False:
+                    for i in range(8):
+                        angle =45 * i
+                        self.bullets.append(Projectile(0.5, angle, 3, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
+                        self.shot = True
+                
+                for i in range(0,len(self.bullets)):
+                    if 0 <=i < len(self.bullets):
+                        self.bullets[-i].moveForEnemy(window)
+                if self.countDown <= 0:
+                    
+                    self.h -=1
+            if self.countDownStart:
+                self.countDown -=1
+                
+            
+    
+    def move(self, playerLocation):
+        if self.h > 0:
+            if playerLocation.x > self.pos.x:
+                if self.pos.x < window.get_width()-100:
+                    self.pos.x += self.speed
+            if playerLocation.x < self.pos.x:
+                if self.pos.x >80:
+                    self.pos.x -= self.speed
+            if playerLocation.y > self.pos.y:
+                if self.pos.y < window.get_height():
+                    self.pos.y += self.speed
+            if playerLocation.y < self.pos.y:
+                if self.pos.y > 20:
+                    self.pos.y -= self.speed
+
 
 
 class Building():
@@ -335,8 +369,13 @@ class Environment():
 
     def spawnEnemy(self):
         if uptime % random.randint(1, 1000)==0:
+            
             if len(self.enemies) <uptime/1000:
-                self.enemies.append(Enemy(1,2,1,0,pygame.Vector2(random.randint(80,300), -20),scrollSpeed,(255,0,0)))
+                if bool(random.getrandbits(9)):
+                    self.enemies.append(Kamikaze(1, 2, 1, 1, pygame.Vector2(random.randint(80,300), -20),scrollSpeed, (255,140,0)))
+                else:
+                    self.enemies.append(Enemy(1,2,1,0,pygame.Vector2(random.randint(80,300), -20),scrollSpeed,(255,0,0)))
+
 
     def healthCheck(self, index):
         if self.enemies[index].h >0:
@@ -400,14 +439,14 @@ class powerUp():
         
 
 pygame.init()
+scrollSpeed = 2
 window = pygame.display.set_mode((400,550))
 window.fill((0,0,0))
 running = True
 clock = pygame.time.Clock()
 uptime =0
-
 position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
-scrollSpeed = 2
+
 player = Player(3,5,10,10,position,0,0, scrollSpeed,(0,255,0))
 uptime =0
 world = Environment(scrollSpeed)
