@@ -1,0 +1,21 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"main.Box" [color="black", fontcolor="black", label=<{Box|color : tuple<br ALIGN="LEFT"/>drawnRect<br ALIGN="LEFT"/>dropped : bool<br ALIGN="LEFT"/>live : bool<br ALIGN="LEFT"/>position<br ALIGN="LEFT"/>rect<br ALIGN="LEFT"/>touched : list<br ALIGN="LEFT"/>|checkDamage()<br ALIGN="LEFT"/>drawIt()<br ALIGN="LEFT"/>move()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Building" [color="black", fontcolor="black", label=<{Building|drawnRect<br ALIGN="LEFT"/>enemies : int<br ALIGN="LEFT"/>enemy<br ALIGN="LEFT"/>length<br ALIGN="LEFT"/>pos<br ALIGN="LEFT"/>rect<br ALIGN="LEFT"/>scSp<br ALIGN="LEFT"/>width<br ALIGN="LEFT"/>|draw()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Character" [color="black", fontcolor="black", label=<{Character|c<br ALIGN="LEFT"/>d<br ALIGN="LEFT"/>drawnRect<br ALIGN="LEFT"/>fire<br ALIGN="LEFT"/>pos<br ALIGN="LEFT"/>rect<br ALIGN="LEFT"/>speed<br ALIGN="LEFT"/>|draw(window)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Destructible" [color="black", fontcolor="black", label=<{Destructible|h<br ALIGN="LEFT"/>scr<br ALIGN="LEFT"/>|drop()<br ALIGN="LEFT"/>takeDamage(amount)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Enemy" [color="black", fontcolor="black", label=<{Enemy|bullets : list<br ALIGN="LEFT"/>randoffsetx : int<br ALIGN="LEFT"/>randoffsety : int<br ALIGN="LEFT"/>|move(playerLocation)<br ALIGN="LEFT"/>shoot(playerLocation)<br ALIGN="LEFT"/>takeDamage(amount)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Environment" [color="black", fontcolor="black", label=<{Environment|boxes : list<br ALIGN="LEFT"/>buildings : list<br ALIGN="LEFT"/>enemies : list<br ALIGN="LEFT"/>powerups : list<br ALIGN="LEFT"/>scr<br ALIGN="LEFT"/>|boxMgr()<br ALIGN="LEFT"/>healthCheck(index)<br ALIGN="LEFT"/>instantiateBox()<br ALIGN="LEFT"/>instantiateBuilding()<br ALIGN="LEFT"/>manager(playerLocation)<br ALIGN="LEFT"/>removeBox(boxToRemove)<br ALIGN="LEFT"/>removeEnemy(enemyToRemove)<br ALIGN="LEFT"/>spawnEnemy()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Kamikaze" [color="black", fontcolor="black", label=<{Kamikaze|countDown : int<br ALIGN="LEFT"/>countDownStart : bool<br ALIGN="LEFT"/>h<br ALIGN="LEFT"/>shot : bool<br ALIGN="LEFT"/>|move(playerLocation)<br ALIGN="LEFT"/>shoot(playerLocation)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Player" [color="black", fontcolor="black", label=<{Player|bullets : list<br ALIGN="LEFT"/>cont<br ALIGN="LEFT"/>fire<br ALIGN="LEFT"/>h<br ALIGN="LEFT"/>sc<br ALIGN="LEFT"/>speed<br ALIGN="LEFT"/>|checkDamage()<br ALIGN="LEFT"/>increaseFireRate(amount)<br ALIGN="LEFT"/>increaseHealth(amount)<br ALIGN="LEFT"/>increaseScore(amount)<br ALIGN="LEFT"/>increaseSpeed(amount)<br ALIGN="LEFT"/>move()<br ALIGN="LEFT"/>removeProjectile(itemToRemove)<br ALIGN="LEFT"/>shoot(dt)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Projectile" [color="black", fontcolor="black", label=<{Projectile|a<br ALIGN="LEFT"/>d<br ALIGN="LEFT"/>drawnRect<br ALIGN="LEFT"/>pos<br ALIGN="LEFT"/>rect<br ALIGN="LEFT"/>speed<br ALIGN="LEFT"/>ut : int<br ALIGN="LEFT"/>|drawCheck()<br ALIGN="LEFT"/>move(window)<br ALIGN="LEFT"/>moveForEnemy(window)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.powerUp" [color="black", fontcolor="black", label=<{powerUp|collected : bool<br ALIGN="LEFT"/>drawnRect<br ALIGN="LEFT"/>pos<br ALIGN="LEFT"/>rect<br ALIGN="LEFT"/>t<br ALIGN="LEFT"/>|drawAndCheck()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"main.Box" -> "main.Destructible" [arrowhead="empty", arrowtail="none"];
+"main.Character" -> "main.Destructible" [arrowhead="empty", arrowtail="none"];
+"main.Enemy" -> "main.Character" [arrowhead="empty", arrowtail="none"];
+"main.Kamikaze" -> "main.Enemy" [arrowhead="empty", arrowtail="none"];
+"main.Player" -> "main.Character" [arrowhead="empty", arrowtail="none"];
+"main.Enemy" -> "main.Building" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="enemies", style="solid"];
+"main.Enemy" -> "main.Building" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="enemies", style="solid"];
+}

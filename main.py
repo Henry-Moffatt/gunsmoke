@@ -157,7 +157,6 @@ class Player(Character):
                     if 0 <=n < len(world.enemies[-i].bullets):
                         if self.rect.colliderect(world.enemies[-i].bullets[-n]):
                             self.takeDamage(world.enemies[-i].bullets[-n].d)
-                            print("damage dealt")
                             world.enemies[-i].bullets.pop(-n)
         if self.h <= 0:
             pygame.quit()
@@ -204,29 +203,29 @@ class Enemy(Character):
         super().takeDamage(amount)
         if self.h ==0:
             world.removeEnemy(self)
+            player.increaseScore(100)
 
 class Kamikaze(Enemy):
     def __init__(self, health, speed, dmg, fireRate, pos, scrollSpeed, color):
         super().__init__(health, speed, dmg, fireRate, pos, scrollSpeed, color)
-        self.countDown=20
+        self.countDown=40
         self.shot = False
         self.countDownStart= False
     
     def shoot(self, playerLocation):
         if self.h > 0:
-            if abs(self.pos.y+10 -playerLocation.y) < 50 and abs(self.pos.x+10 -playerLocation.x) < 50:
+            if abs(self.pos.y+10 -playerLocation.y) < 80 and abs(self.pos.x+10 -playerLocation.x) < 80:
                 self.countDownStart = True
                 if self.shot == False:
-                    for i in range(8):
-                        angle =45 * i
-                        self.bullets.append(Projectile(0.5, angle, 3, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
+                    for i in range(0,9):
+                        angle =22.5 * i
+                        self.bullets.append(Projectile(1, angle, 4, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
                         self.shot = True
                 
                 for i in range(0,len(self.bullets)):
                     if 0 <=i < len(self.bullets):
                         self.bullets[-i].moveForEnemy(window)
                 if self.countDown <= 0:
-                    
                     self.h -=1
             if self.countDownStart:
                 self.countDown -=1
@@ -234,19 +233,19 @@ class Kamikaze(Enemy):
             
     
     def move(self, playerLocation):
-        if self.h > 0:
-            if playerLocation.x > self.pos.x:
-                if self.pos.x < window.get_width()-100:
-                    self.pos.x += self.speed
-            if playerLocation.x < self.pos.x:
-                if self.pos.x >80:
-                    self.pos.x -= self.speed
-            if playerLocation.y > self.pos.y:
-                if self.pos.y < window.get_height():
-                    self.pos.y += self.speed
-            if playerLocation.y < self.pos.y:
-                if self.pos.y > 20:
-                    self.pos.y -= self.speed
+        if self.countDownStart == False:
+            if self.h > 0:
+                if playerLocation.x > self.pos.x:
+                    if self.pos.x < window.get_width()-100:
+                        self.pos.x += self.speed
+                if playerLocation.x < self.pos.x:
+                    if self.pos.x >80:
+                        self.pos.x -= self.speed
+                if playerLocation.y > self.pos.y:
+                        self.pos.y += self.speed
+                if playerLocation.y < self.pos.y:
+                        self.pos.y -= self.speed
+        self.pos.y += scrollSpeed
 
 
 
@@ -371,7 +370,7 @@ class Environment():
         if uptime % random.randint(1, 1000)==0:
             
             if len(self.enemies) <uptime/1000:
-                if bool(random.getrandbits(9)):
+                if random.randint(0,9) == 9:
                     self.enemies.append(Kamikaze(1, 2, 1, 1, pygame.Vector2(random.randint(80,300), -20),scrollSpeed, (255,140,0)))
                 else:
                     self.enemies.append(Enemy(1,2,1,0,pygame.Vector2(random.randint(80,300), -20),scrollSpeed,(255,0,0)))
@@ -399,7 +398,8 @@ class Environment():
                     if x != False:
                         self.powerups.append(powerUp(x, self.enemies[-i].pos))
                     self.removeEnemy(-i)
-                    player.increaseScore(100)
+                    
+                    
         for i in range(0, len(self.powerups)):
             if 0 <= i < len(self.powerups):
                 self.powerups[-i].drawAndCheck()
