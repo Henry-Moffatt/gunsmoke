@@ -201,6 +201,8 @@ class Enemy(Character):
 
     def takeDamage(self, amount):
         super().takeDamage(amount)
+        if self.h < 0:
+            player.increaseScore(100)
         if self.h ==0:
             world.removeEnemy(self)
             player.increaseScore(100)
