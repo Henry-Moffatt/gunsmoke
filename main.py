@@ -83,6 +83,7 @@ class Character(Destructible):
         if self.h > 0:
             self.rect = pygame.rect.Rect(self.pos.x, self.pos.y,20,20)
             self.drawnRect = pygame.draw.rect(window, self.c, self.rect)
+            #print("Character was drawn")
 
         
 
@@ -195,17 +196,19 @@ class Enemy(Character):
             if self.pos.y <= playerLocation.y:
                 angle = math.degrees(math.atan((playerLocation.y-self.pos.y)/(playerLocation.x-self.pos.x)))
                 self.bullets.append(Projectile(1, angle, 5, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
+                #print("Bullet was fired")
         for i in range(0,len(self.bullets)):
             if 0 <=i < len(self.bullets):
                 self.bullets[-i].moveForEnemy(window)
+                #print("Bullet was moved")
 
     def takeDamage(self, amount):
         super().takeDamage(amount)
-        if self.h < 0:
-            player.increaseScore(100)
+        #print(f"damage was dealt to {self}")
         if self.h ==0:
-            world.removeEnemy(self)
+            #print(self.h)
             player.increaseScore(100)
+            
 
 class Kamikaze(Enemy):
     def __init__(self, health, speed, dmg, fireRate, pos, scrollSpeed, color):
@@ -223,6 +226,7 @@ class Kamikaze(Enemy):
                         angle =22.5 * i
                         self.bullets.append(Projectile(1, angle, 4, pygame.Vector2(self.pos.x +10, self.pos.y +10)))
                         self.shot = True
+                    #print("Boom!")
                 
                 for i in range(0,len(self.bullets)):
                     if 0 <=i < len(self.bullets):
@@ -365,8 +369,10 @@ class Environment():
             if both == True:
                 self.buildings.append(Building(length,width,pygame.Vector2(0, -length), scrollSpeed, not left))
                 self.buildings.append(Building(length-bothOffset,width-bothOffset,pygame.Vector2(window.get_width()-width+bothOffset, -length-bothOffset), scrollSpeed, not right))
+                #print("2 buildings were instantiated")
             else:
                 self.buildings.append(Building(length,width,pygame.Vector2(place, -length), scrollSpeed, not enemy))
+                #print("1 building was instantiated")
 
     def spawnEnemy(self):
         if uptime % random.randint(1, 1000)==0:
@@ -410,9 +416,11 @@ class Environment():
         
     def removeBox(self, boxToRemove):
         self.boxes.remove(boxToRemove)
+        #print("Box removed")
 
     def removeEnemy(self, enemyToRemove):
         self.enemies.pop(enemyToRemove)
+        #print("Enemy removed")
 
 class powerUp():
     def __init__(self, type, pos) -> None:
@@ -430,17 +438,43 @@ class powerUp():
             if self.rect.colliderect(player): 
                 if self.t == 1:
                     player.increaseScore(1000)
+                    #print("Powerup collected")
                     self.collected = True
                 elif self.t == 2:
                     player.increaseHealth(1)
+                    #print("Powerup collected")
                     self.collected = True
         else:
             world.powerups.remove(self)
-        
-            
+
+def BlackBoxTest(testee, index):
+    if testee == world:
+        print(world.healthCheck(index))
+    if isinstance(testee, Destructible):
+        x=y=z=0
+        x1=y1=z1=False
+        for i in range(1000):
+            if testee.drop() == 1:
+                x+=1
+            if testee.drop() == 2:
+                y+=1
+            if testee.drop() == False:
+                z+=1
+        if 0.2 < x/1000 < 0.4:
+            x1=True
+        if 0 < y/1000 < 0.2:
+            y1=True
+        if 0.4 < z/1000< 1:
+            z1=True
+        if x1==y1==z1==True:
+            print("Result is acceptable")
+        else:
+            print("Result is unacceptable")
         
 
+
 pygame.init()
+
 scrollSpeed = 2
 window = pygame.display.set_mode((400,550))
 window.fill((0,0,0))
@@ -449,7 +483,7 @@ clock = pygame.time.Clock()
 uptime =0
 position = pygame.Vector2(window.get_width()/2, window.get_height()/2)
 
-player = Player(3,5,10,10,position,0,0, scrollSpeed,(0,255,0))
+player = Player(3,5,1,10,position,0,0, scrollSpeed,(0,255,0))
 uptime =0
 world = Environment(scrollSpeed)
 font = pygame.font.SysFont("Papyrus", 21)
@@ -460,10 +494,12 @@ while running:
         
         uptime +=1
         window.fill("#B09060")
-        
+        #BlackBoxTest(player, 0)
         world.instantiateBuilding()
         player.draw(window)
         world.spawnEnemy()
+        #if len(world.enemies) > 0:
+        #    BlackBoxTest(world, 0)
         world.instantiateBox()
         world.manager(player.pos)
         for event in pygame.event.get():
